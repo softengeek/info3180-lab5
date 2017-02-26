@@ -25,26 +25,29 @@ def home():
 def about():
     """Render the website's about page."""
     return render_template('about.html')
+    
+@app.route('/secure-page/')
+@login_required
+def secure_page():
+    """Render a secure page on our website that only logged in users can access."""
+    return render_template('secure_page.html')
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
-    if request.method == "POST":
+    if request.method == "POST" and form.validate_on_submit():
         # change this to actually validate the entire form submission
         # and not just one field
-        if form.validate_on_submit():
-            # Get the username and password values from the form.
-            username = form.username.data
-            password = form.password.data
-            user = UserProfile.query.filter_by(username=username, password=password).first()
-            if user is not None:
-                login_user(user)
-                flash('Logged in successfully.', 'success')
-                return redirect(url_for('secure_page'))
-            else:
-                flash('Username or Password is incorrect.', 'danger')
-        flash_errors(form)
-        return render_template('login.html', form=form) 
+        # Get the username and password values from the form.
+        username = form.username.data
+        password = form.password.data
+        user = UserProfile.query.filter_by(username=username, password=password).first()
+        if user is not None:
+            login_user(user)
+            flash('Logged in successfully.', 'success')
+            return redirect(url_for('secure_page'))
+        flash('Username or Password is incorrect.', 'danger')
+    return render_template('login.html', form=form) 
 
 # user_loader callback. This callback is used to reload the user object from
 # the user ID stored in the session
